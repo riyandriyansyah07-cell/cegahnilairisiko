@@ -141,6 +141,13 @@ class ModelService
     /** Kirim permintaan REST internal ke layanan model. */
     public function post(string $path, array $payload, int $timeout): Response
     {
+        $baseUrl = config('risk.service_url');
+        
+        // Cegah error Invalid URI jika URL layanan python belum diset/kosong
+        if (empty($baseUrl)) {
+            throw new RuntimeException('RISK_SERVICE_URL wajib dikonfigurasi.');
+        }
+
         $token = trim((string) config('risk.service_token'));
         if ($token === '' && ! app()->environment(['local', 'testing'])) {
             throw new RuntimeException('RISK_SERVICE_TOKEN wajib dikonfigurasi di luar mode pengembangan.');
@@ -148,7 +155,7 @@ class ModelService
 
         return Http::timeout($timeout)->acceptJson()
             ->withHeaders($token !== '' ? ['X-Service-Token' => $token] : [])
-            ->post(config('risk.service_url').$path, $payload);
+            ->post($baseUrl.$path, $payload);
     }
 
     /** @return array|null null bila layanan tidak tersedia (model aturan dipakai) */
