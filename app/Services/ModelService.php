@@ -143,16 +143,13 @@ class ModelService
 {
     $baseUrl = config('risk.service_url');
     
-    // Jika URL kosong, kembalikan pengecualian ringan atau log agar tidak crash saat booting
+    // Cegah error jika URL layanan kosong saat startup
     if (empty($baseUrl)) {
-        throw new RuntimeException('RISK_SERVICE_URL belum dikonfigurasi dengan benar.');
+        throw new RuntimeException('RISK_SERVICE_URL belum dikonfigurasi.');
     }
 
     $token = trim((string) config('risk.service_token'));
-    if ($token === '' && ! app()->environment(['local', 'testing'])) {
-        throw new RuntimeException('RISK_SERVICE_TOKEN wajib dikonfigurasi di luar mode pengembangan.');
-    }
-
+    
     return Http::timeout($timeout)->acceptJson()
         ->withHeaders($token !== '' ? ['X-Service-Token' => $token] : [])
         ->post($baseUrl.$path, $payload);
