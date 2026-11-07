@@ -139,21 +139,25 @@ class ModelService
     }
 
     /** Kirim permintaan REST internal ke layanan model. */
+    /** Kirim permintaan REST internal ke layanan model. */
     public function post(string $path, array $payload, int $timeout): Response
-{
-    $baseUrl = config('risk.service_url');
-    
-    // Cegah error jika URL layanan kosong saat startup
-    if (empty($baseUrl)) {
-        throw new RuntimeException('RISK_SERVICE_URL belum dikonfigurasi.');
-    }
+    {
+        $baseUrl = config('risk.service_url');
+        
+        // Jangan lakukan request HTTP jika service_url kosong atau belum dikonfigurasi dengan benar
+        if (empty($baseUrl) || !filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            throw new RuntimeException('RISK_SERVICE_URL belum siap atau tidak valid.');
+        }
 
-    $token = trim((string) config('risk.service_token'));
-    
-    return Http::timeout($timeout)->acceptJson()
-        ->withHeaders($token !== '' ? ['X-Service-Token' => $token] : [])
-        ->post($baseUrl.$path, $payload);
-}
+        $token = trim((string) config('risk.service_token'));
+        if ($token === '' && ! app()->environment(['local', 'testing'])) {
+            throw new RuntimeException('RISK_SERVICE_TOKEN wajib dikonfigurasi di luar mode pengembangan.');
+        }
+
+        return Http::timeout($timeout)->acceptJson()
+            ->withHeaders($token !== '' ? ['X-Service-Token' => $token] : [])
+            ->post($baseUrl.$path, $payload);
+    }
 
     /** @return array|null null bila layanan tidak tersedia (model aturan dipakai) */
     private function trainRemote(string $version, array $train, array $test): ?array
