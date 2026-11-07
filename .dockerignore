@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+node_modules
+vendor
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+ml-service/.venv
+ml-service/__pycache__
+ml-service/.pytest_cache
+ml-service/models/*.joblib

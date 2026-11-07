@@ -1,0 +1,202 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+@source '../views';
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/*
+ * Token warna. Satu aksen (petrol), satu skala radius (6px), satu keluarga netral dingin.
+ * Warna risiko dipakai hanya untuk tingkat risiko dan selalu disertai teks.
+ */
+:root {
+    color-scheme: light;
+    --bg: #e9edf1;
+    --surface: #f6f8fa;
+    --sunken: #dfe4ea;
+    --ink: #151a21;
+    --ink-2: #444f5e;
+    --ink-3: #5d6877;
+    --line: #cfd5dd;
+    --line-strong: #a7b0bc;
+    --accent: #0e5a6c;
+    --accent-ink: #f2f9fb;
+    --accent-soft: #d6e7ec;
+    --ok: #27704f;
+    --warn: #95610a;
+    --bad: #a63a30;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --bg: #0d1217;
+    --surface: #131a21;
+    --sunken: #0a0e12;
+    --ink: #e4e8ed;
+    --ink-2: #aab4c0;
+    --ink-3: #8793a1;
+    --line: #232d37;
+    --line-strong: #3a4756;
+    --accent: #6ec3d6;
+    --accent-ink: #08161a;
+    --accent-soft: #14303a;
+    --ok: #67c493;
+    --warn: #e0b04f;
+    --bad: #ee8b80;
+}
+
+@theme inline {
+    --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
+
+    --color-bg: var(--bg);
+    --color-surface: var(--surface);
+    --color-sunken: var(--sunken);
+    --color-ink: var(--ink);
+    --color-ink-2: var(--ink-2);
+    --color-ink-3: var(--ink-3);
+    --color-line: var(--line);
+    --color-line-strong: var(--line-strong);
+    --color-accent: var(--accent);
+    --color-accent-ink: var(--accent-ink);
+    --color-accent-soft: var(--accent-soft);
+    --color-ok: var(--ok);
+    --color-warn: var(--warn);
+    --color-bad: var(--bad);
+
+    --radius-xs: 6px;
+    --radius-sm: 6px;
+    --radius-md: 6px;
+    --radius-lg: 6px;
+    --radius-xl: 6px;
+    --radius-2xl: 6px;
+}
+
+@layer base {
+    html {
+        font-size: 15px;
+        -webkit-text-size-adjust: 100%;
+    }
+    body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3 {
+        letter-spacing: -0.02em;
+        line-height: 1.12;
+        font-weight: 600;
+    }
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+    ::selection {
+        background: var(--accent);
+        color: var(--accent-ink);
+    }
+}
+
+@layer components {
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 2.5rem;
+        padding: 0 1rem;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--accent); color: var(--accent-ink); }
+    .btn-primary:hover { background: color-mix(in oklab, var(--accent) 88%, var(--ink)); }
+    .btn-quiet { border-color: var(--line-strong); color: var(--ink); background: transparent; }
+    .btn-quiet:hover { background: var(--sunken); }
+    .btn-danger { border-color: var(--bad); color: var(--bad); background: transparent; }
+    .btn-danger:hover { background: color-mix(in oklab, var(--bad) 10%, transparent); }
+    .btn-sm { height: 2.1rem; padding: 0 0.75rem; font-size: 0.85rem; }
+
+    .input {
+        width: 100%;
+        height: 2.6rem;
+        padding: 0 0.75rem;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--ink);
+    }
+    .input::placeholder { color: var(--ink-3); }
+    .input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+    textarea.input { height: auto; padding: 0.6rem 0.75rem; }
+    select.input { padding-right: 2rem; }
+
+    .label { display: block; margin-bottom: 0.375rem; font-size: 0.9rem; font-weight: 500; }
+    .hint { font-size: 0.85rem; color: var(--ink-2); }
+    .field-error { margin-top: 0.375rem; font-size: 0.85rem; color: var(--bad); }
+
+    .tbl { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .tbl th { text-align: left; font-weight: 500; font-size: 0.82rem; color: var(--ink-2); padding: 0.6rem 0.9rem 0.6rem 0; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+    .tbl td { padding: 0.8rem 0.9rem 0.8rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .tbl tbody tr:last-child :is(td, th) { border-bottom: 0 !important; }
+
+    .num { font-variant-numeric: tabular-nums; }
+    .mono { font-family: var(--font-mono); font-size: 0.92em; }
+
+    .risk { color: var(--c, var(--ink-2)); }
+    .risk-rendah { --c: var(--ok); }
+    .risk-sedang { --c: var(--warn); }
+    .risk-tinggi { --c: var(--bad); }
+    .risk-belum { --c: var(--ink-3); }
+    .risk-chip {
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        padding: 0.2rem 0.55rem; border-radius: 6px;
+        font-size: 0.85rem; font-weight: 500; white-space: nowrap;
+        color: var(--c);
+        background: color-mix(in oklab, var(--c) 12%, transparent);
+        border: 1px solid color-mix(in oklab, var(--c) 35%, transparent);
+    }
+
+    .nav-link {
+        display: flex; align-items: center; gap: 0.7rem;
+        padding: 0.55rem 0.75rem; border-radius: 6px;
+        color: var(--ink-2); font-weight: 500; font-size: 0.93rem;
+        border-left: 2px solid transparent;
+        transition: background-color 0.15s, color 0.15s;
+    }
+    .nav-link:hover { background: var(--sunken); color: var(--ink); }
+    .nav-link[aria-current='page'] { background: var(--surface); color: var(--ink); border-left-color: var(--accent); }
+
+    .rule { border-top: 1px solid var(--line); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: none; }
+    }
+    @keyframes grow {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
+    .rise { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+    .grow { transform-origin: left center; animation: grow 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 90ms + 150ms); }
+}
+
+/* Sidebar geser pada layar kecil */
+@media (max-width: 1023px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    body[data-nav-open] .sidebar { transform: none; }
+}
+
+@media print {
+    .sidebar, .no-print { display: none !important; }
+}
