@@ -30,7 +30,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/privasi', [Student\PrivacyController::class, 'show'])->name('privasi');
         Route::post('/privasi/izin', [Student\PrivacyController::class, 'consent'])->name('privasi.izin');
-        Route::post('/privasi/pengingat', [Student\PrivacyController::class, 'reminders'])->name('privasi.pengingat');
+        Route::post('/privasi/pengingat', [Student\PrivacyController::class, 'reminders'])->middleware('throttle:6,10')->name('privasi.pengingat');
 
         Route::get('/riwayat', [Student\HistoryController::class, 'show'])->name('riwayat');
         Route::delete('/riwayat/{semester}', [Student\HistoryController::class, 'destroy'])

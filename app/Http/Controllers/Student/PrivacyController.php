@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ReminderMail;
 use App\Models\Consent;
+use App\Models\RiskResult;
 use App\Models\StudentSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class PrivacyController extends Controller
 {
@@ -56,12 +61,27 @@ class PrivacyController extends Controller
             return back()->withErrors(['email' => 'Isi alamat email kalau kamu mau pengingat lewat email.'])->withInput();
         }
 
+        $previous = StudentSetting::where('student_ref', $user->student_ref)->first();
+        $needsConfirmation = $email && (! $previous?->remind_email || $user->email !== $emailValue);
+
         $user->update(['email' => $emailValue]);
         StudentSetting::updateOrCreate(
             ['student_ref' => $user->student_ref],
             ['remind_in_app' => $request->boolean('remind_in_app'), 'remind_email' => $email]
         );
 
-        return redirect()->route('mhs.privasi')->with('status', 'Pengaturan pengingat disimpan.');
+        $status = 'Pengaturan pengingat disimpan.';
+        if ($needsConfirmation) {
+            try {
+                $latest = RiskResult::where('student_ref', $user->student_ref)->orderByDesc('semester')->first();
+                Mail::to($emailValue)->send(new ReminderMail($user, ReminderMail::KIND_CONFIRM, $latest));
+                $status .= ' Email konfirmasi dikirim ke '.$emailValue.'. Cek juga folder Spam.';
+            } catch (Throwable $e) {
+                Log::warning('Email konfirmasi pengingat gagal dikirim: '.$e->getMessage());
+                $status .= ' Email konfirmasi belum bisa terkirim. Pastikan alamatnya benar, lalu simpan lagi.';
+            }
+        }
+
+        return redirect()->route('mhs.privasi')->with('status', $status);
     }
 }

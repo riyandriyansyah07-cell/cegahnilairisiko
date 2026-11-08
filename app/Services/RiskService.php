@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\ReminderMail;
 use App\Models\AcademicRecord;
 use App\Models\ImportBatch;
 use App\Models\Reminder;
@@ -96,9 +97,7 @@ class RiskService
             $user = User::where('student_ref', $ref)->first();
             if ($user?->email) {
                 try {
-                    Mail::raw($message."\n\nHasil ini perkiraan berdasarkan data yang kamu impor, bukan penilaian atas dirimu.", function ($mail) use ($user) {
-                        $mail->to($user->email)->subject('Pengingat akademik dari Cegah Sebelum Terlambat');
-                    });
+                    Mail::to($user->email)->send(new ReminderMail($user, ReminderMail::KIND_RISK, $result));
                 } catch (Throwable $e) {
                     Log::warning('Pengingat email gagal dikirim: '.$e->getMessage());
                 }
