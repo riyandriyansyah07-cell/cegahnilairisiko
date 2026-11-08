@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Mail::extend('appsscript', fn (array $config) => new AppsScriptTransport(
-            (string) ($config['url'] ?? ''),
+            (string) ($config['endpoint'] ?? ''),
             (string) ($config['secret'] ?? ''),
         ));
     }

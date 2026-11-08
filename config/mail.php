@@ -67,7 +67,7 @@ return [
 
         'appsscript' => [
             'transport' => 'appsscript',
-            'url' => env('MAIL_APPSSCRIPT_URL'),
+            'endpoint' => env('MAIL_APPSSCRIPT_URL'),
             'secret' => env('MAIL_APPSSCRIPT_SECRET'),
         ],
 
