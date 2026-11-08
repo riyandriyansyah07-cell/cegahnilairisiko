@@ -22,6 +22,7 @@ class AccessLogger
                 'actor_role' => $actor->role,
                 'student_ref' => $studentRef,
                 'action' => $action,
+                'created_at' => now(),
             ]);
         }
     }
