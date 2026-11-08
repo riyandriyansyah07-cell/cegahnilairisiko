@@ -65,6 +65,12 @@ return [
             'transport' => 'resend',
         ],
 
+        'appsscript' => [
+            'transport' => 'appsscript',
+            'url' => env('MAIL_APPSSCRIPT_URL'),
+            'secret' => env('MAIL_APPSSCRIPT_SECRET'),
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),

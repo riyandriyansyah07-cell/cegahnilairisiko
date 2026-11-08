@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Mail\Transport\AppsScriptTransport;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,5 +19,10 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+
+        Mail::extend('appsscript', fn (array $config) => new AppsScriptTransport(
+            (string) ($config['url'] ?? ''),
+            (string) ($config['secret'] ?? ''),
+        ));
     }
 }
