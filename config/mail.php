@@ -121,7 +121,7 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
     
-    'risk_throttle_hours' => [(int) env('RISK_EMAIL_THROTTLE_HOURS', 24),
-    ],
+    'risk_throttle_hours' => (int) env('RISK_EMAIL_THROTTLE_HOURS', 24),
+    
 
 ];

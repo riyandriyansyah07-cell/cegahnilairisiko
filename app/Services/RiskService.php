@@ -99,25 +99,31 @@ class RiskService
         }
 
         if ($settings->remind_email) {
-            // Batas email saat dipicu Hitung ulang. Atur lewat RISK_EMAIL_THROTTLE_HOURS (0 = tanpa batas, untuk uji).
-            $hours = (int) config('mail.risk_throttle_hours', 24);
-            if ($force && $hours > 0 && ! Cache::add('risk-email:'.$ref.':'.$result->level, 1, now()->addHours($hours))) {
-                Log::info('Pengingat email dilewati: sudah terkirim dalam '.$hours.' jam terakhir untuk '.$ref);
+    // Batas hanya berlaku untuk "Hitung ulang". RISK_EMAIL_THROTTLE_HOURS: 0 = tanpa batas.
+    $hours = (int) config('mail.risk_throttle_hours', 24);
+    $key = 'risk-email:'.$ref.':'.$result->level;
+    $throttled = $force && $hours > 0;
 
-                return;
-            }
+    if ($throttled && Cache::has($key)) {
+        Log::info('Pengingat email dilewati: sudah terkirim dalam '.$hours.' jam terakhir untuk '.$ref);
 
-            $user = User::where('student_ref', $ref)->first();
-            if ($user?->email) {
-                try {
-                    Mail::to($user->email)->send(new ReminderMail($user, ReminderMail::KIND_RISK, $result));
-                    Log::info('Pengingat email terkirim ke '.$user->email);
-                } catch (Throwable $e) {
-                    Log::warning('Pengingat email gagal dikirim: '.$e->getMessage());
-                }
-            } else {
-                Log::info('Pengingat email dilewati: mahasiswa '.$ref.' belum mengisi email.');
+        return;
+    }
+
+    $user = User::where('student_ref', $ref)->first();
+    if ($user?->email) {
+        try {
+            Mail::to($user->email)->send(new ReminderMail($user, ReminderMail::KIND_RISK, $result));
+            if ($throttled) {
+                Cache::put($key, 1, now()->addHours($hours)); // kunci dipasang hanya kalau berhasil
             }
+            Log::info('Pengingat email terkirim ke '.$user->email);
+        } catch (Throwable $e) {
+            Log::warning('Pengingat email gagal dikirim: '.$e->getMessage());
         }
+    } else {
+        Log::info('Pengingat email dilewati: mahasiswa '.$ref.' belum mengisi email.');
     }
 }
+        }
+    }
