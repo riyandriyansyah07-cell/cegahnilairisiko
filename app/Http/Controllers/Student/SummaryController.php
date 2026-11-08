@@ -57,7 +57,7 @@ class SummaryController extends Controller
 
     public function recalculate(Request $request, RiskService $risk): RedirectResponse
     {
-        $result = $risk->refresh($request->user()->student_ref);
+        $result = $risk->refresh($request->user()->student_ref, true);
 
         return redirect()->route('mhs.ringkasan')->with('status', $result
             ? 'Risiko dihitung ulang dengan data dan model terbaru.'
