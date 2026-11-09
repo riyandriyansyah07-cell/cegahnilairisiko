@@ -18,7 +18,10 @@ use Throwable;
 /** Proses 7.0 dan akses model aktif (D5): melatih, membandingkan, dan mengaktifkan versi model. */
 class ModelService
 {
-    private const ALGORITHMS = ['random_forest' => 'Random Forest + SHAP', 'xgboost' => 'XGBoost + SHAP'];
+    private const ALGORITHMS = [
+        'random_forest' => 'Random Forest + SHAP',
+        'xgboost' => 'XGBoost + SHAP',
+    ];
 
     private ?ModelVersion $cached = null;
 
@@ -77,10 +80,19 @@ class ModelService
             'label' => $r->label,
         ])->all();
 
+        $nextNumber = (int) ModelVersion::max('id') + 1;
+        $name = (string) $nextNumber;
+
+        // Acak urutan baris secara deterministik berdasarkan nomor versi (agar split train/test bervariasi antar versi)
+        if ($nextNumber > 1 && count($rows) > 10) {
+            mt_srand(crc32('version-seed-' . $name . '-' . $dataset->id));
+            shuffle($rows);
+            mt_srand(); // Reset seed ke normal
+        }
+
         [$trainRows, $testRows] = ThresholdTrainer::split($rows);
         $rule = ThresholdTrainer::fitOn($trainRows, $testRows);
 
-        $name = (string) ((int) ModelVersion::max('id') + 1);
         $ml = config('risk.engine') === 'http' ? $this->trainRemote('ml-v'.$name, $trainRows, $testRows) : null;
 
         if ($ml === null) {
@@ -139,31 +151,32 @@ class ModelService
     }
 
     /** Kirim permintaan REST internal ke layanan model. */
-    /** Kirim permintaan REST internal ke layanan model. */
     public function post(string $path, array $payload, int $timeout): Response
     {
-        $baseUrl = config('risk.service_url');
-        
-        // Jangan lakukan request HTTP jika service_url kosong atau belum dikonfigurasi dengan benar
-        if (empty($baseUrl) || !filter_var($baseUrl, FILTER_VALIDATE_URL)) {
-            throw new RuntimeException('RISK_SERVICE_URL belum siap atau tidak valid.');
+        $baseUrl = rtrim(trim((string) config('risk.service_url')), '/');
+
+        // Tambahkan https:// otomatis jika user memasukkan domain Railway tanpa skema http/https
+        if ($baseUrl !== '' && ! str_starts_with($baseUrl, 'http://') && ! str_starts_with($baseUrl, 'https://')) {
+            $baseUrl = 'https://' . $baseUrl;
+        }
+
+        if ($baseUrl === '' || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            throw new RuntimeException('RISK_SERVICE_URL belum siap atau tidak valid: ' . $baseUrl);
         }
 
         $token = trim((string) config('risk.service_token'));
-        if ($token === '' && ! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException('RISK_SERVICE_TOKEN wajib dikonfigurasi di luar mode pengembangan.');
-        }
+        $cleanPath = '/' . ltrim($path, '/');
 
         return Http::timeout($timeout)->acceptJson()
             ->withHeaders($token !== '' ? ['X-Service-Token' => $token] : [])
-            ->post($baseUrl.$path, $payload);
+            ->post($baseUrl . $cleanPath, $payload);
     }
 
     /** @return array|null null bila layanan tidak tersedia (model aturan dipakai) */
     private function trainRemote(string $version, array $train, array $test): ?array
     {
         try {
-            $res = $this->post('/train', ['version' => $version, 'train' => $train, 'test' => $test], (int) config('risk.train_timeout'));
+            $res = $this->post('/train', ['version' => $version, 'train' => $train, 'test' => $test], (int) config('risk.train_timeout', 30));
         } catch (Throwable $e) {
             Log::warning('Layanan model tidak tersedia untuk pelatihan: '.$e->getMessage());
 
